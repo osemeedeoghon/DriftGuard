@@ -1,0 +1,46 @@
+ticket_id,title,description,size,created_date,status,reporter
+T-101,Implement student sign-up form,Build the student account registration form with university email verification and the agreed password complexity rules.,5,2025-01-08,Done,dev.team
+T-102,Login page and session handling,"Implement the sign-in page, session cookie handling and sign-out for registered student accounts.",3,2025-01-09,Done,dev.team
+T-103,Course catalogue search service,"Implement the catalogue search service supporting course code, title, subject area and delivery mode as agreed.",8,2025-01-13,Done,dev.team
+T-104,Catalogue browse screen with filters,"Build the catalogue browsing screen with term, subject and delivery mode filters over the published catalogue.",5,2025-01-14,Done,dev.team
+T-105,Enrolment seat allocation service,Implement atomic seat allocation on enrolment so a section can never exceed its published capacity.,8,2025-01-16,Done,dev.team
+T-106,Waitlist queue implementation,Implement the waitlist queue so students join in order and released seats are offered in that order.,5,2025-01-20,Done,dev.team
+T-107,Timetable clash detection engine,Implement the clash detection rule that blocks an enrolment overlapping an existing confirmed class time.,8,2025-01-22,Done,dev.team
+T-108,Weekly timetable grid view,Build the student weekly timetable grid showing confirmed enrolments for the selected term.,5,2025-01-23,Done,dev.team
+T-109,Prerequisite rule evaluation,Implement prerequisite checking against completed and in-progress courses before confirming an enrolment.,5,2025-01-27,Done,dev.team
+T-110,Tuition fee calculation engine,Implement tuition calculation from confirmed enrolments using the published programme fee schedule.,8,2025-01-29,Done,dev.team
+T-111,Card payment gateway integration,Integrate the existing university payment gateway so students can pay a tuition balance by credit or debit card.,8,2025-02-03,Done,dev.team
+T-112,Payment receipt document generation,"Generate a receipt document for each successful payment showing amount, date, reference and covered enrolments.",5,2025-02-05,Done,dev.team
+T-113,Administrator course management screens,"Build the registry screens to create, edit, publish and withdraw course sections with capacity and schedule.",8,2025-02-10,In progress,dev.team
+T-114,Faculty class roster listing,Build the roster screen listing confirmed students for each section assigned to the signed-in faculty member.,5,2025-02-12,In progress,dev.team
+T-115,Enrolment change email notifications,"Send the student an email whenever an enrolment is confirmed, withdrawn or administratively moved.",5,2025-02-14,In progress,dev.team
+T-116,Unofficial transcript screen,"Build the student transcript screen listing completed courses, grades and cumulative grade point average.",5,2025-02-18,To do,dev.team
+T-117,Role based access control middleware,"Implement middleware enforcing the student, faculty, administrator and registrar roles on every endpoint.",5,2025-02-19,In progress,dev.team
+T-118,Audit log writer for enrolment actions,"Write enrolment, withdrawal and waitlist movements to the append-only audit log with actor and timestamp.",3,2025-02-21,To do,dev.team
+T-119,Keyboard navigation and screen reader labels,"Add keyboard operability, visible focus styling and screen reader labelling across the student-facing screens.",5,2025-02-25,To do,dev.team
+T-120,Weekly enrolment statistics batch job,Implement the scheduled job producing the weekly registrar statistics on section fill rates and waitlist depth.,5,2025-02-26,To do,dev.team
+T-201,Clarify the password complexity policy,"Revise the registration form to require a twelve character minimum and reject the thousand most common passwords, replacing the original eight character rule.",3,2025-02-27,To do,it.security
+T-202,Extend catalogue search to instructor name,Update course search so it also matches the instructor surname in addition to the agreed course code and title fields.,3,2025-03-03,To do,student.services
+T-203,Notify students on waitlist promotion,Amend waitlist handling so a promoted student is emailed immediately rather than discovering the change at their next sign-in.,3,2025-03-04,To do,student.services
+T-204,Tighten prerequisite override rules,"Modify prerequisite validation so only a registrar, and not a departmental administrator, may record an override.",3,2025-03-06,To do,registry.admin
+T-205,Revise fee calculation for part-time students,Change the tuition calculation to apply the per-credit part-time rate instead of the flat full-time rate for students below nine credits.,5,2025-03-10,To do,finance.office
+T-206,Expand transcript to show in-progress courses,Extend the unofficial transcript so it also lists courses currently in progress alongside completed courses and grades.,3,2025-03-12,To do,student.services
+T-207,Add tax breakdown to the payment receipt,Update the generated receipt to show the harmonised sales tax component separately from the tuition amount.,2,2025-03-13,To do,finance.office
+T-208,Broaden audit logging to administrator edits,Extend audit logging so administrator edits to course sections are recorded in addition to enrolment actions.,3,2025-03-17,To do,it.security
+T-209,Split statistics report by programme,Revise the weekly statistics report to break fill rates down by programme in addition to the agreed section level view.,3,2025-03-18,To do,registry.admin
+T-210,Add calendar file export to the timetable,Extend the timetable export so students can download an ICS calendar file as well as the agreed printable PDF.,3,2025-03-20,To do,student.services
+T-301,Native mobile application for enrolment,Stakeholder request to introduce a native iOS and Android application for course enrolment. This was not part of the agreed scope.,21,2025-03-24,To do,pmo
+T-302,Single sign-on with the university identity provider,Introduce SAML single sign-on against the central university identity provider. Newly requested by information security.,13,2025-03-25,To do,it.security
+T-303,Live chat support widget,Introduce a live chat widget on the enrolment screens so students can reach the service desk without leaving the portal.,8,2025-03-27,To do,student.services
+T-304,Degree audit and graduation progress tracker,Add support for a degree audit module showing a student's progress towards their graduation requirements. This was never specified in the baseline.,21,2025-04-01,To do,registry.admin
+T-305,Tuition instalment payment plan,New feature allowing students to pay tuition in four monthly instalments with automatic reminders and arrears handling.,13,2025-04-03,To do,finance.office
+T-306,Multi-currency payment for international students,Introduce payment in the student's home currency with daily exchange rate capture for international applicants.,8,2025-04-07,To do,finance.office
+T-307,Push notifications for waitlist movement,"Add support for mobile push notifications when a student is promoted from a waitlist, in addition to any email.",5,2025-04-09,To do,student.services
+T-308,Nightly integration with the learning platform,Net new integration pushing confirmed enrolment data into the learning management system on a nightly schedule.,13,2025-04-14,To do,it.security
+T-309,Student photo upload and campus card issue,Introduce photo upload during registration and generate the campus identity card artwork from it.,8,2025-04-16,To do,student.services
+T-310,Registrar analytics dashboard,"Additional module providing an interactive dashboard of enrolment trends, demand forecasting and capacity planning for the registrar.",13,2025-04-21,To do,registry.admin
+T-311,Dark mode theme across the portal,"Introduce a dark colour theme across the portal, selectable by the student and remembered between sessions.",5,2025-04-23,To do,student.services
+T-401,Remove the weekly statistics batch report,"The registrar will use the new analytics dashboard instead, so the scheduled weekly statistics report is de-scoped from this project.",8,2025-04-24,To do,registry.admin
+T-402,Drop the faculty class roster screen,"Faculty will continue to use the existing legacy roster system, so the in-portal roster view is withdrawn from scope.",8,2025-04-28,To do,faculty.lead
+T-403,Cancel the audit logging requirement,"Audit logging will be delivered centrally by the platform team, so this requirement is removed from the project scope.",5,2025-04-30,To do,it.security
+T-404,Remove the in-portal transcript view,"Transcripts will continue to be served by the existing student records system, so the in-portal transcript view is no longer required.",8,2025-05-02,To do,registry.admin

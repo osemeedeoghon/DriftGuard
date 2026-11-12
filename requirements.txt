@@ -1,0 +1,20 @@
+# DriftGuard runtime dependencies.
+# Everything here is free and runs locally. No LLM API client appears in this
+# list, and none should ever be added to the application's execution path.
+streamlit>=1.30
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+plotly>=5.18
+
+# Testing
+pytest>=7.4
+# Optional: PDF text extraction for the PDF report tests. The application
+# never imports it; those tests skip cleanly when it is absent.
+pymupdf>=1.24
+
+# PDF report generation (Phase 9). Pure Python, runs offline, no service calls.
+# Matplotlib renders the chart images; it is already present in the scientific
+# stack, which avoids adding Kaleido + headless Chromium for Plotly export.
+reportlab>=4.0
+matplotlib>=3.7

@@ -1,0 +1,19 @@
+requirement_id,title,description,size,category,priority
+R-01,Student account registration and login,"Prospective and continuing students can create an account with their university email, verify it, and sign in with a password that meets the agreed complexity policy.",8,Identity,Must
+R-02,Course catalogue browsing and search,"Students can browse the published course catalogue for a term and search it by course code, course title, subject area and delivery mode.",13,Catalogue,Must
+R-03,Course enrolment and seat allocation,"Students can enrol in an open course section, and the system allocates a seat atomically so that the published section capacity is never exceeded.",13,Enrolment,Must
+R-04,Waitlist management,"When a section is full the student may join a waitlist, and seats released by a withdrawal are offered to waitlisted students in order of joining.",8,Enrolment,Must
+R-05,Timetable conflict detection,"The system rejects an enrolment that would create a timetable clash with another course the student is already enrolled in for the same term.",8,Enrolment,Must
+R-06,Student timetable view and export,"Students can view their confirmed weekly timetable for a term and export it as a printable PDF document.",5,Timetable,Should
+R-07,Prerequisite validation,"Enrolment is blocked unless the student has completed, or is currently enrolled in, every prerequisite course recorded against the section.",8,Enrolment,Must
+R-08,Tuition fee calculation,"The system calculates the tuition payable for a student's confirmed enrolments for a term using the published fee schedule for their programme.",13,Finance,Must
+R-09,Online fee payment by card,"Students can pay the calculated tuition balance online by credit or debit card through the university's existing payment gateway.",13,Finance,Must
+R-10,Payment receipt generation,"A receipt is generated for every successful payment, showing the amount, date, payment reference and the enrolments it covers.",5,Finance,Must
+R-11,Administrator course management,"Registry administrators can create, edit, publish and withdraw course sections, including capacity, schedule, instructor and prerequisites.",13,Administration,Must
+R-12,Faculty class roster view,"Teaching faculty can view the confirmed class roster for each section they are assigned to, including student name and programme.",8,Faculty,Should
+R-13,Email notification on enrolment changes,"The system emails the student whenever an enrolment is confirmed, withdrawn, or moved as a result of an administrative change.",5,Notifications,Should
+R-14,Academic transcript view,"Students can view an unofficial transcript listing completed courses, grades awarded and cumulative grade point average.",8,Records,Should
+R-15,Role-based access control,"Every screen and service endpoint enforces role-based access control across the student, faculty, administrator and registrar roles.",8,Security,Must
+R-16,Audit logging of enrolment actions,"Every enrolment, withdrawal and waitlist movement is written to an append-only audit log recording actor, action, subject and timestamp.",5,Security,Must
+R-17,Accessibility conformance,"All student-facing screens conform to WCAG 2.1 level AA, including keyboard operation, visible focus, colour contrast and screen reader labelling.",8,Accessibility,Must
+R-18,Weekly enrolment statistics report,"A scheduled job produces a weekly enrolment statistics report for the registrar showing fill rates and waitlist depth by section.",8,Reporting,Should
