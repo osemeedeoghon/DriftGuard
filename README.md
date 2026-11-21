@@ -5,12 +5,42 @@ requirements against project tickets, classifies each change, measures a
 **Scope Drift Index**, and estimates what the drift costs in effort and
 schedule using **COCOMO II Post-Architecture**.
 
-Built as a local, run-on-demand prototype for Northeastern University Toronto
+Built as a local, run-on-demand application for Northeastern University Toronto
 coursework.
 
 > **Presenting this?** See **[PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md)**
 > for the problem statement, architecture, evaluation methodology, a
 > step-by-step demonstration sequence, key findings and limitations.
+>
+> **Assessing the engineering?** See **[docs/](docs/README.md)** — a full
+> project audit, a requirements specification and a prioritised roadmap.
+
+---
+
+## Maturity
+
+Stated plainly, because the documentation elsewhere depends on this being
+honest.
+
+**What is solid.** The analytical core is well covered and well separated:
+**300 tests**, a `driftguard` package that imports no UI code and can be
+driven headlessly, COCOMO II with published constants and no fabricated
+calibration, and an evaluation layer that detects and reports leakage in its
+own results rather than publishing the flattering number. Measured throughput
+is 686 ms for 2,500 tickets against 300 requirements.
+
+**What is not production-ready.** A November 2026 audit
+([`docs/PROJECT_AUDIT.md`](docs/PROJECT_AUDIT.md)) found no durable
+persistence, no audit logging, no CI pipeline, no packaging, no automated
+coverage of the UI layer, and a confirmed HTML-injection path from uploaded
+ticket data. Those gaps are catalogued with evidence and scheduled in
+[`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+
+**What it has been validated on.** One synthetic project. DriftGuard is a
+demonstrated method with a worked example — **not** a product validated
+against real project data. The keyword lexicon is domain-specific and would
+need re-tuning, plus a freshly labelled sample, before its accuracy on your
+project could be claimed at all.
 
 ---
 
