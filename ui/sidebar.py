@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+
 import streamlit as st
 
 from driftguard import __version__, data, synthetic
@@ -18,6 +20,7 @@ from driftguard.data import DataValidationError
 from driftguard.pipeline import AnalysisSettings
 
 from . import state
+from .safe_html import esc
 
 SIZE_UNITS = {
     "story_points": "Story points",
@@ -26,10 +29,19 @@ SIZE_UNITS = {
 }
 
 
-def _load_uploads() -> list[str]:
-    """Handle the three file uploaders. Returns accumulated warnings."""
-    warnings: list[str] = []
+def _load_uploads() -> None:
+    """Handle the three file uploaders and register the result as a project.
 
+    A baseline and a ticket set together constitute a project, so this routes
+    through :func:`state.install_uploaded_project` rather than assigning
+    session state directly. Doing the latter was audit finding 2.3: uploaded
+    projects never reached ``ProjectStore``, so project switching and scope
+    history silently did not work for the primary input path.
+
+    Installation is keyed on a content hash. Streamlit returns the same
+    ``UploadedFile`` objects on every rerun, so installing on their presence
+    alone would register a duplicate project on every widget interaction.
+    """
     baseline_file = st.file_uploader(
         "Baseline requirements",
         type=["csv", "txt", "md"],
@@ -46,40 +58,72 @@ def _load_uploads() -> list[str]:
         help="Tickets with a true_class column. Used only to measure classifier quality.",
     )
 
-    if baseline_file is not None:
-        try:
-            frame, report = data.load_baseline(baseline_file, filename=baseline_file.name)
-            st.session_state.baseline = frame
-            st.session_state.source = "upload"
-            warnings += report.warnings
-        except DataValidationError as exc:
-            st.error(f"**Baseline rejected.** {exc}", icon="⚠️")
+    if baseline_file is None and tickets_file is None:
+        return
 
-    if tickets_file is not None:
-        try:
-            frame, report = data.load_tickets(tickets_file)
-            st.session_state.tickets = frame
-            st.session_state.source = "upload"
-            warnings += report.warnings
-        except DataValidationError as exc:
-            st.error(f"**Tickets rejected.** {exc}", icon="⚠️")
+    if baseline_file is None or tickets_file is None:
+        st.info(
+            "A project needs both a baseline and a ticket set. "
+            + ("Add the tickets file." if tickets_file is None else "Add the baseline file."),
+            icon="📄",
+        )
+        return
 
+    # Read once; the bytes are needed both for hashing and for parsing.
+    baseline_bytes = baseline_file.getvalue()
+    tickets_bytes = tickets_file.getvalue()
+    labelled_bytes = labelled_file.getvalue() if labelled_file is not None else b""
+
+    signature = state.upload_signature(baseline_bytes, tickets_bytes, labelled_bytes)
+    if signature == st.session_state.get("upload_signature"):
+        return  # already installed; nothing has changed
+
+    warnings: list[str] = []
+
+    try:
+        baseline, report = data.load_baseline(
+            io.BytesIO(baseline_bytes), filename=baseline_file.name
+        )
+        warnings += report.warnings
+    except DataValidationError as exc:
+        st.error(f"**Baseline rejected.** {exc}", icon="⚠️")
+        return
+
+    try:
+        tickets, report = data.load_tickets(io.BytesIO(tickets_bytes))
+        warnings += report.warnings
+    except DataValidationError as exc:
+        st.error(f"**Tickets rejected.** {exc}", icon="⚠️")
+        return
+
+    labelled = None
     if labelled_file is not None:
         try:
-            frame, report = data.load_tickets(labelled_file)
+            frame, report = data.load_tickets(io.BytesIO(labelled_bytes))
             if "true_class" not in frame.columns:
                 st.error(
                     "**Labelled set rejected.** It needs a `true_class` column "
-                    "holding your manual labels.",
+                    "holding your manual labels. The project was loaded without it.",
                     icon="⚠️",
                 )
             else:
-                st.session_state.labelled = frame
+                labelled = frame
                 warnings += report.warnings
         except DataValidationError as exc:
-            st.error(f"**Labelled set rejected.** {exc}", icon="⚠️")
+            st.error(
+                f"**Labelled set rejected.** {exc} The project was loaded without it.",
+                icon="⚠️",
+            )
 
-    return warnings
+    state.install_uploaded_project(
+        name=state.project_name_from_filename(baseline_file.name),
+        baseline=baseline,
+        tickets=tickets,
+        labelled=labelled,
+        warnings=warnings,
+        signature=signature,
+    )
+    st.rerun()
 
 
 def render() -> AnalysisSettings:
@@ -88,7 +132,7 @@ def render() -> AnalysisSettings:
         "<div style='font-size:1.35rem;font-weight:650;letter-spacing:-0.02em;"
         "color:#fff'>DriftGuard</div>"
         "<div style='font-size:0.76rem;color:#94a3b8;margin-top:0.15rem'>"
-        f"v{__version__} · Scope drift analytics</div>",
+        f"v{esc(__version__)} · Scope drift analytics</div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -131,9 +175,7 @@ def render() -> AnalysisSettings:
             state.load_sample_project()
             st.rerun()
 
-        warnings = _load_uploads()
-        if warnings:
-            st.session_state.load_warnings = warnings
+        _load_uploads()
 
         if state.has_project():
             st.caption(
@@ -141,6 +183,22 @@ def render() -> AnalysisSettings:
                 f"{len(st.session_state.tickets)} tickets"
                 + (", labelled set present" if state.has_labels() else "")
             )
+
+            # A name derived from a filename is a guess; the reviewer owns it.
+            if state.store().active is not None:
+                typed = st.text_input(
+                    "Project name",
+                    value=st.session_state.get("project_name", ""),
+                    key="sidebar_project_name",
+                    help="Used in the header and in every exported report.",
+                )
+                if typed.strip() and typed.strip() != st.session_state.get("project_name"):
+                    try:
+                        state.rename_active_project(typed)
+                        st.rerun()
+                    except ValueError as exc:
+                        st.error(str(exc), icon="⚠️")
+
             if st.button(
                 "Clear project", use_container_width=True, key="sidebar_clear_project"
             ):

@@ -226,6 +226,29 @@ class ProjectStore:
         """Mapping of project id to display name, creation order preserved."""
         return {pid: record.name for pid, record in self._projects.items()}
 
+    def rename(self, project_id: str, new_name: str) -> None:
+        """Rename a project, rejecting blanks and collisions.
+
+        Collision is checked against every *other* project, so renaming a
+        project to the name it already has is a no-op rather than an error.
+        """
+        if project_id not in self._projects:
+            raise KeyError(f"No project with id {project_id!r}.")
+        cleaned = new_name.strip()
+        if not cleaned:
+            raise ValueError("A project needs a name.")
+        target = cleaned.lower()
+        clash = any(
+            pid != project_id and record.name.strip().lower() == target
+            for pid, record in self._projects.items()
+        )
+        if clash:
+            raise ValueError(
+                f"Another project in this session is already called "
+                f"{cleaned!r}."
+            )
+        self._projects[project_id].name = cleaned
+
     def has_name(self, name: str) -> bool:
         """Whether a project with this name already exists, ignoring case."""
         target = name.strip().lower()

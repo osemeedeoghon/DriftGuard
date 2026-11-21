@@ -23,7 +23,7 @@ Stated plainly, because the documentation elsewhere depends on this being
 honest.
 
 **What is solid.** The analytical core is well covered and well separated:
-**300 tests**, a `driftguard` package that imports no UI code and can be
+**345 tests**, a `driftguard` package that imports no UI code and can be
 driven headlessly, COCOMO II with published constants and no fabricated
 calibration, and an evaluation layer that detects and reports leakage in its
 own results rather than publishing the flattering number. Measured throughput
@@ -31,10 +31,17 @@ is 686 ms for 2,500 tickets against 300 requirements.
 
 **What is not production-ready.** A November 2026 audit
 ([`docs/PROJECT_AUDIT.md`](docs/PROJECT_AUDIT.md)) found no durable
-persistence, no audit logging, no CI pipeline, no packaging, no automated
-coverage of the UI layer, and a confirmed HTML-injection path from uploaded
-ticket data. Those gaps are catalogued with evidence and scheduled in
-[`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+persistence, no audit logging, no CI pipeline, no packaging and no automated
+coverage of the UI layer. Those gaps are catalogued with evidence and
+scheduled in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+
+**Fixed since the audit.** The confirmed HTML-injection path from uploaded
+ticket data is closed: untrusted text is escaped at every render boundary, and
+a static check over the whole codebase fails CI if a new unescaped site appears
+([ADR-0005](docs/adr/0005-html-escaping-policy.md)). Uploaded projects now
+register properly, so project switching, scope history and report titles work
+on the upload path. One new finding is open and unfixed: CSV exports do not
+neutralise formula-leading cells (audit §7.6).
 
 **What it has been validated on.** One synthetic project. DriftGuard is a
 demonstrated method with a worked example — **not** a product validated

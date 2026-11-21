@@ -7,7 +7,6 @@ assumption, the component is built so the assumption travels with it.
 
 from __future__ import annotations
 
-import html
 from contextlib import contextmanager
 from typing import Iterable, Iterator
 
@@ -15,10 +14,14 @@ import pandas as pd
 import streamlit as st
 
 from . import theme
+from .safe_html import SafeHtml, esc, esc_number, join_html
 
+#: Re-exported so pages can use ``ui.esc`` without a second import. The
+#: canonical definitions live in :mod:`ui.safe_html`.
+__all__ = ["SafeHtml", "esc", "esc_number", "join_html"]
 
-def _esc(value: object) -> str:
-    return html.escape(str(value), quote=True)
+#: Retained for callers that still use the old private name.
+_esc = esc
 
 
 # --------------------------------------------------------------------------
@@ -30,29 +33,33 @@ def page_header(title: str, subtitle: str = "") -> None:
     if subtitle:
         st.markdown(
             f"<div class='dg-section-sub' style='margin:-0.5rem 0 1.2rem 0;"
-            f"max-width:60rem'>{_esc(subtitle)}</div>",
+            f"max-width:60rem'>{esc(subtitle)}</div>",
             unsafe_allow_html=True,
         )
 
 
 def section(title: str, subtitle: str = "") -> None:
     """Rule-and-title separator between blocks on a page."""
-    sub = (
-        f"<div class='dg-section-sub'>{_esc(subtitle)}</div>" if subtitle else ""
+    sub_html = SafeHtml(
+        f"<div class='dg-section-sub'>{esc(subtitle)}</div>" if subtitle else ""
     )
     st.markdown(
-        f"<div class='dg-section'><div class='dg-section-title'>{_esc(title)}"
-        f"</div>{sub}</div>",
+        f"<div class='dg-section'><div class='dg-section-title'>{esc(title)}"
+        f"</div>{sub_html}</div>",
         unsafe_allow_html=True,
     )
 
 
-def severity_pill(label: str, colour: str, icon: str) -> str:
-    """Inline severity badge. Icon and label always accompany the colour."""
-    return (
-        f"<span class='dg-pill' style='background:{colour}1a;"
-        f"border-color:{colour}59;color:{colour}'>"
-        f"<span aria-hidden='true'>{_esc(icon)}</span>{_esc(label)}</span>"
+def severity_pill(label: str, colour: str, icon: str) -> SafeHtml:
+    """Inline severity badge. Icon and label always accompany the colour.
+
+    Returns :class:`SafeHtml` so callers can interpolate the result into a
+    rendered string without it being escaped a second time.
+    """
+    return SafeHtml(
+        f"<span class='dg-pill' style='background:{esc(colour)}1a;"
+        f"border-color:{esc(colour)}59;color:{esc(colour)}'>"
+        f"<span aria-hidden='true'>{esc(icon)}</span>{esc(label)}</span>"
     )
 
 
@@ -75,14 +82,14 @@ def metric_card(
     rather than inferred from sign, because in this domain a *rising* number is
     usually bad news.
     """
-    hint = ""
+    hint_html = SafeHtml("")
     if help_text:
-        hint = (
-            f"<span title='{_esc(help_text)}' style='cursor:help;"
+        hint_html = SafeHtml(
+            f"<span title='{esc(help_text)}' style='cursor:help;"
             f"color:{theme.INK_MUTED};font-weight:400'>&#9432;</span>"
         )
 
-    delta_html = ""
+    delta_html = SafeHtml("")
     if delta:
         if delta_good is True:
             colour = theme.TEXT_GOOD
@@ -90,18 +97,18 @@ def metric_card(
             colour = theme.TEXT_BAD
         else:
             colour = theme.INK_SECONDARY
-        delta_html = (
-            f"<div class='dg-metric-delta' style='color:{colour}'>{_esc(delta)}</div>"
+        delta_html = SafeHtml(
+            f"<div class='dg-metric-delta' style='color:{colour}'>{esc(delta)}</div>"
         )
 
-    foot_html = (
-        f"<div class='dg-metric-foot'>{_esc(footnote)}</div>" if footnote else ""
+    foot_html = SafeHtml(
+        f"<div class='dg-metric-foot'>{esc(footnote)}</div>" if footnote else ""
     )
 
     st.markdown(
         f"<div class='dg-card'>"
-        f"<div class='dg-metric-label'>{_esc(label)}{hint}</div>"
-        f"<div class='dg-metric-value'>{_esc(value)}</div>"
+        f"<div class='dg-metric-label'>{esc(label)}{hint_html}</div>"
+        f"<div class='dg-metric-value'>{esc(value)}</div>"
         f"{delta_html}{foot_html}</div>",
         unsafe_allow_html=True,
     )
@@ -124,20 +131,22 @@ def hero_figure(
     caption: str = "",
 ) -> None:
     """The one number a page leads with."""
-    pill = ""
+    pill_html = SafeHtml("")
     if severity:
-        pill = "<div style='margin-top:0.55rem'>" + severity_pill(*severity) + "</div>"
-    cap = (
+        pill_html = SafeHtml(
+            f"<div style='margin-top:0.55rem'>{severity_pill(*severity)}</div>"
+        )
+    caption_html = SafeHtml(
         f"<div class='dg-metric-foot' style='margin-top:0.6rem;max-width:34rem'>"
-        f"{_esc(caption)}</div>"
+        f"{esc(caption)}</div>"
         if caption
         else ""
     )
     st.markdown(
         f"<div class='dg-hero'>"
-        f"<div class='dg-metric-label'>{_esc(label)}</div>"
-        f"<div class='dg-hero-value'>{_esc(value)}</div>"
-        f"{pill}{cap}</div>",
+        f"<div class='dg-metric-label'>{esc(label)}</div>"
+        f"<div class='dg-hero-value'>{esc(value)}</div>"
+        f"{pill_html}{caption_html}</div>",
         unsafe_allow_html=True,
     )
 
@@ -148,7 +157,7 @@ def hero_figure(
 def assumption(text: str) -> None:
     """Flag a number that rests on a user-supplied or default assumption."""
     st.markdown(
-        f"<div class='dg-note'><strong>Assumption.</strong> {_esc(text)}</div>",
+        f"<div class='dg-note'><strong>Assumption.</strong> {esc(text)}</div>",
         unsafe_allow_html=True,
     )
 
@@ -157,9 +166,9 @@ def empty_state(title: str, body: str, *, icon: str = "📂") -> None:
     """Shown when a page has nothing to display, explaining what to do next."""
     st.markdown(
         f"<div class='dg-empty'>"
-        f"<div style='font-size:2rem;line-height:1' aria-hidden='true'>{icon}</div>"
-        f"<div class='dg-empty-title' style='margin-top:0.6rem'>{_esc(title)}</div>"
-        f"<div class='dg-empty-body'>{_esc(body)}</div></div>",
+        f"<div style='font-size:2rem;line-height:1' aria-hidden='true'>{esc(icon)}</div>"
+        f"<div class='dg-empty-title' style='margin-top:0.6rem'>{esc(title)}</div>"
+        f"<div class='dg-empty-body'>{esc(body)}</div></div>",
         unsafe_allow_html=True,
     )
 

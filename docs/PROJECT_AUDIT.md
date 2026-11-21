@@ -4,6 +4,13 @@
 **Commit audited:** `fb8c56b`
 **Auditor scope:** read-only inspection. No application code was modified.
 
+> **Remediation status (20 Nov 2026).** Findings **S-1** (HTML injection) and
+> **§2.3** (uploaded projects not registered) have since been fixed under
+> roadmap tasks P0.1 and P0.2. The findings below are preserved as written —
+> an audit is a point-in-time record — with a status line appended to each.
+> A new finding, **S-4**, was discovered during that work and is recorded in
+> §7.6.
+
 ---
 
 ## How to read this document
@@ -227,6 +234,14 @@ whereas the sample and synthetic paths go through `state._install()`
 is effectively unavailable for the primary input path (upload). It is not a
 data-corruption risk.
 
+> ✅ **FIXED** under P0.2. The upload handler now routes through
+> `state.install_uploaded_project()`, keyed on a content hash so Streamlit's
+> repeated reruns cannot register duplicates. Project names are derived from
+> the uploaded filename and are editable. Verified in the running application:
+> an uploaded project appears in the switcher alongside the sample
+> ("2 projects in this session") and accepts scope snapshots
+> (`tests/test_upload_registration.py`, 27 tests).
+
 ---
 
 ## 3. Business and product positioning assessment
@@ -445,6 +460,12 @@ from uploaded text), `app.py:113` (`project_name`).
 user attacks themselves". It is "an analyst runs DriftGuard over a ticket
 export supplied by a client or a vendor". That export is untrusted input.
 
+> ✅ **FIXED** under P0.1. A `SafeHtml` marker type and an idempotent `esc()`
+> now guard every render boundary, enforced by a static AST check over all
+> `unsafe_allow_html` sites (`tests/test_html_escaping.py`, 18 tests). Verified
+> in the running application: the payload produced **zero** injected `<img>`
+> elements and rendered as literal text. See [ADR-0005](adr/0005-html-escaping-policy.md).
+
 ### 7.2 Finding S-2 — no audit trail **[M]**
 
 **Severity: Medium** for a governance tool.
@@ -489,6 +510,27 @@ reliability gap.
   `ui/` and `app.py`. The offline-first claim holds.
 
 - **[M] No secrets or credentials** in the repository.
+
+### 7.6 Finding S-4 — CSV formula injection in exports **[M] CONFIRMED**
+
+**Severity: Low–Medium.** Discovered 20 November 2026 while implementing P0.1;
+**not fixed**.
+
+**[M]** Exported CSVs do not neutralise formula-leading cells. A ticket id of
+`=HYPERLINK("http://evil","click")` survives `reporting.classified_export()`
+and `data.frame_to_csv_bytes()` unescaped:
+
+```
+"=HYPERLINK(""http://evil"",""click"")",Add su...
+```
+
+A spreadsheet application opening that export may evaluate the cell as a
+formula. **[A]** It is distinct from S-1: the sink is Excel or Sheets rather
+than the DOM, so the S-1 fix does not address it. Standard mitigation is to
+prefix a cell beginning `=`, `+`, `-` or `@` with an apostrophe, or to quote
+defensively on export.
+
+Scheduled as roadmap task **P0.6**.
 
 ### 7.5 Risks explicitly *not* found
 

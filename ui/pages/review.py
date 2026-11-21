@@ -271,13 +271,13 @@ def _render_explanation(result, candidates: pd.DataFrame) -> None:
         st.write(detail["description"])
 
         # 3-4. Prediction and final classification
-        override_badge = (
+        override_badge_html = (
             ui.severity_pill("Overridden by reviewer", theme.STATUS_SERIOUS, "✎")
             if detail["overridden"]
             else ui.severity_pill("Model prediction stands", theme.STATUS_GOOD, "✔")
         )
         st.markdown(
-            f"<div style='margin:0.4rem 0 0.9rem 0'>{override_badge}</div>",
+            f"<div style='margin:0.4rem 0 0.9rem 0'>{override_badge_html}</div>",
             unsafe_allow_html=True,
         )
         ui.data_table(
@@ -331,15 +331,17 @@ def _render_explanation(result, candidates: pd.DataFrame) -> None:
         # 7. Important matching terms
         st.markdown("##### Terms shared with that requirement")
         if detail["shared_terms"]:
-            st.markdown(
-                " ".join(
+            # Terms come from the TF-IDF vocabulary, which is built from the
+            # uploaded ticket and requirement text.
+            terms_html = ui.join_html(
+                ui.SafeHtml(
                     f"<span class='dg-pill' style='background:{theme.ACCENT}1a;"
                     f"border-color:{theme.ACCENT}59;color:{theme.ACCENT_DARK};"
-                    f"margin-right:0.3rem'>{term}</span>"
-                    for term in detail["shared_terms"]
-                ),
-                unsafe_allow_html=True,
+                    f"margin-right:0.3rem'>{ui.esc(term)}</span>"
+                )
+                for term in detail["shared_terms"]
             )
+            st.markdown(terms_html, unsafe_allow_html=True)
         else:
             ui.no_evidence(
                 "No distinctive vocabulary is shared with the nearest "

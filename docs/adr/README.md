@@ -6,7 +6,9 @@ Two kinds live here:
 
 - **Retrospective** (0001–0004): decisions already embodied in the code,
   written down during the November 2026 audit so the reasoning survives.
-- **Forward** (0005+): decisions scheduled in the
+- **Accepted as work lands** (0005): decisions taken while implementing the
+  roadmap.
+- **Forward** (0006+): decisions scheduled in the
   [roadmap](../DEVELOPMENT_ROADMAP.md), to be written when taken.
 
 ## Index
@@ -17,7 +19,7 @@ Two kinds live here:
 | [0002](0002-revl-charges-churn-only.md) | REVL charges churn only, excluding new scope | Accepted | Retrospective |
 | [0003](0003-offline-first.md) | Offline-first, no network client | Accepted | Retrospective |
 | [0004](0004-report-leakage-rather-than-suppress.md) | Report evaluation leakage rather than suppress it | Accepted | Retrospective |
-| 0005 | HTML escaping policy at render boundaries | Proposed | P0.5 |
+| [0005](0005-html-escaping-policy.md) | HTML escaping policy at render boundaries | **Accepted** | P0.1 |
 | 0006 | Continuous integration on GitHub Actions | Proposed | P0.5 |
 | 0007 | SQLite for optional durable persistence | Proposed | P1.7 |
 | 0008 | Repository pattern for the project store | Proposed | P1.7 |

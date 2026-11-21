@@ -283,11 +283,16 @@ def render(result) -> None:
             "Medium": theme.STATUS_SERIOUS,
             "Low": theme.INK_MUTED,
         }[item["priority"]]
+        # `because` embeds ticket identifiers taken from the uploaded file,
+        # so every field here is untrusted text and must be escaped.
         st.markdown(
-            f"<div class='dg-card' style='margin-bottom:0.6rem;border-left:3px solid {colour}'>"
-            f"<div class='dg-metric-label' style='color:{colour}'>{item['priority']} priority</div>"
-            f"<div style='font-weight:600;margin:0.15rem 0 0.3rem 0'>{item['action']}</div>"
-            f"<div class='dg-metric-foot'>{item['because']}</div></div>",
+            f"<div class='dg-card' style='margin-bottom:0.6rem;"
+            f"border-left:3px solid {ui.esc(colour)}'>"
+            f"<div class='dg-metric-label' style='color:{ui.esc(colour)}'>"
+            f"{ui.esc(item['priority'])} priority</div>"
+            f"<div style='font-weight:600;margin:0.15rem 0 0.3rem 0'>"
+            f"{ui.esc(item['action'])}</div>"
+            f"<div class='dg-metric-foot'>{ui.esc(item['because'])}</div></div>",
             unsafe_allow_html=True,
         )
 

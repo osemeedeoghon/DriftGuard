@@ -47,13 +47,14 @@ verifiable acceptance criterion.
 
 | ID | Requirement | Priority | Acceptance criterion | Audit ref |
 |---|---|---|---|---|
-| FR-01 | Uploaded projects shall register in the project store on the same path as sample and synthetic projects | **Must** | After uploading a baseline and tickets, the project appears in the switcher, accepts scope snapshots, and its name titles exported reports | §2.3 |
-| FR-02 | All user-supplied text rendered into HTML shall be escaped | **Must** | A ticket id of `<img src=x onerror=alert(1)>` renders as literal text on every page; regression test asserts the payload appears escaped | §7.1 |
+| FR-01 | Uploaded projects shall register in the project store on the same path as sample and synthetic projects | **Must** ✅ | After uploading a baseline and tickets, the project appears in the switcher, accepts scope snapshots, and its name titles exported reports | §2.3 |
+| FR-02 | All user-supplied text rendered into HTML shall be escaped | **Must** ✅ | A ticket id of `<img src=x onerror=alert(1)>` renders as literal text on every page; regression test asserts the payload appears escaped | §7.1 |
 | FR-03 | The system shall optionally persist projects, analyses and review events to a local SQLite file | **Must** | With a database path configured, projects and history survive restart; with none configured, behaviour is byte-identical to today | §8 |
 | FR-04 | Every reviewer override shall be recorded as an immutable audit event | **Must** | Each override writes one `review_event` row with timestamp, actor, before/after and the model's original prediction | §7.2 |
 | FR-05 | The system shall record a structured application log | **Should** | Analyses, validation failures and persistence errors are logged with level and context to a configurable destination | §7.2 |
 | FR-06 | The system shall expose a programmatic entry point for a full analysis | **Could** | A documented function/CLI accepts two file paths and returns or writes the analysis without Streamlit | §6 |
 | FR-07 | Users shall be able to export and re-import a project archive | **Could** | A project exports to a single file and re-imports with history intact | §6 |
+| FR-08 | CSV exports shall not produce cells a spreadsheet evaluates as formulas | **Should** | A ticket id of `=HYPERLINK(...)` exports inert | §7.6 |
 
 ### 2.2 Non-functional requirements
 
@@ -93,15 +94,20 @@ Eight phases. Each ends with the full suite green and a commit.
 **Rationale:** two confirmed defects and no safety net. Nothing else should be
 built on top of these.
 
-| # | Task | Files | Acceptance |
-|---|---|---|---|
-| P0.1 | Escape all user data at HTML boundaries. Move `_esc` to a shared helper; apply in `overview.py`, `review.py`, `app.py`, `reports.py` | `ui/components.py`, 4 call sites | FR-02; regression test with the proven payload |
-| P0.2 | Route uploads through `state._install()` so they register as projects | `ui/sidebar.py:40-80`, `ui/state.py` | FR-01; test asserts an uploaded project appears in `ProjectStore` |
-| P0.3 | GitHub Actions: pytest on push and PR, Python 3.11/3.12/3.13 matrix | `.github/workflows/ci.yml` | NFR-02; green run on `main` |
-| P0.4 | Pin runtime dependencies | `requirements.txt` | NFR-03 |
-| P0.5 | ADR-0005 escaping policy, ADR-0006 CI | `docs/adr/` | DR-03 |
+| # | Task | Files | Acceptance | Status |
+|---|---|---|---|---|
+| P0.1 | Escape all user data at HTML boundaries via a shared helper | `ui/safe_html.py` (new), `ui/components.py`, `overview.py`, `review.py`, `sidebar.py`, `app.py` | FR-02; regression test with the proven payload | ✅ **Done** |
+| P0.2 | Route uploads through `state._install()` so they register as projects | `ui/sidebar.py`, `ui/state.py`, `driftguard/projects.py` | FR-01; test asserts an uploaded project appears in `ProjectStore` | ✅ **Done** |
+| P0.3 | GitHub Actions: pytest on push and PR, Python 3.11/3.12/3.13 matrix | `.github/workflows/ci.yml` | NFR-02; green run on `main` | ⬜ Next |
+| P0.4 | Pin runtime dependencies | `requirements.txt` | NFR-03 | ⬜ |
+| P0.5 | ADR-0005 escaping policy, ADR-0006 CI | `docs/adr/` | DR-03 | 🟡 0005 done |
+| P0.6 | **New.** Neutralise formula-leading cells in CSV exports (finding S-4) | `driftguard/reporting.py`, `driftguard/data.py` | A cell beginning `=`, `+`, `-` or `@` is exported inert; regression test | ⬜ |
 
 **Exit:** 300 tests + new regressions green in CI. **Estimate [A]:** 1 day.
+
+**Progress (20 Nov 2026).** P0.1 and P0.2 implemented and verified. Suite
+went 300 → **345 passing**; the original 300 pass unmodified. P0.6 was added
+after S-4 was discovered during P0.1 — see audit §7.6.
 
 ---
 
@@ -298,8 +304,9 @@ The audit set the precedent by refusing to; P7 must hold that line.
 
 | Audit finding | Requirement | Phase |
 |---|---|---|
-| §7.1 injection (proven) | FR-02 | P0.1 |
-| §2.3 uploads not registered | FR-01 | P0.2 |
+| §7.1 injection (proven) | FR-02 | P0.1 ✅ |
+| §2.3 uploads not registered | FR-01 | P0.2 ✅ |
+| §7.6 CSV formula injection | FR-08 | P0.6 |
 | §6 no CI | NFR-02 | P0.3 |
 | §6 unpinned dependencies | NFR-03 | P0.4 |
 | §6 no persistence | FR-03 | P1.2–P1.6 |

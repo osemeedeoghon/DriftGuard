@@ -107,15 +107,18 @@ def main() -> None:
         "upload": "uploaded data",
     }.get(st.session_state.source, "unknown source")
 
+    # The project name is user-supplied (derived from an uploaded filename or
+    # typed by the reviewer), so it is escaped like any other untrusted text.
     st.markdown(
         f"<div style='display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;"
         f"font-size:0.78rem;color:{theme.INK_MUTED};margin:-0.3rem 0 0.2rem 0'>"
-        f"<span style='color:{theme.INK_SECONDARY};font-weight:600'>{project_name}</span>"
-        f"<span>{source_label}</span>"
-        f"<span>{len(result.classified):,} tickets</span>"
-        f"<span>{len(baseline):,} requirements</span>"
-        f"<span>{review_count} reviewed</span>"
-        f"<span>{'labelled set loaded' if state.has_labels() else 'no labels'}</span>"
+        f"<span style='color:{theme.INK_SECONDARY};font-weight:600'>"
+        f"{ui.esc(project_name)}</span>"
+        f"<span>{ui.esc(source_label)}</span>"
+        f"<span>{ui.esc_number(len(result.classified))} tickets</span>"
+        f"<span>{ui.esc_number(len(baseline))} requirements</span>"
+        f"<span>{ui.esc_number(review_count)} reviewed</span>"
+        f"<span>{ui.esc('labelled set loaded' if state.has_labels() else 'no labels')}</span>"
         f"</div>",
         unsafe_allow_html=True,
     )

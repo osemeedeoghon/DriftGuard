@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import pathlib
+import re
+
 import pandas as pd
 import streamlit as st
 
@@ -18,6 +22,7 @@ DEFAULTS: dict[str, object] = {
     "source": "none",
     "project_name": "DriftGuard analysis",
     "selected_ticket": None,
+    "upload_signature": None,
 }
 
 
@@ -71,6 +76,79 @@ def _install(
         )
     )
     st.session_state.project_name = unique
+
+
+def project_name_from_filename(filename: str) -> str:
+    """Derive a readable project name from an uploaded file name.
+
+    ``campus_portal_baseline.csv`` becomes ``Campus Portal Baseline``. The
+    result is a starting point the reviewer can edit, not a decision — a file
+    name is weak evidence of what a project is called.
+    """
+    raw = (filename or "").strip()
+    # A dotfile such as ".csv" has no real name: Path(".csv").stem is ".csv",
+    # which would yield the project name "Csv".
+    if raw.startswith("."):
+        return "Uploaded project"
+    stem = pathlib.Path(raw).stem.strip()
+    if not stem:
+        return "Uploaded project"
+    words = [w for w in re.split(r"[_\-.\s]+", stem) if w]
+    if not words:
+        return "Uploaded project"
+    return " ".join(word if word.isupper() else word.capitalize() for word in words)
+
+
+def upload_signature(*payloads: bytes) -> str:
+    """Content hash of an upload set.
+
+    Streamlit hands back the same ``UploadedFile`` objects on every rerun, so
+    installing on their mere presence would register a fresh project on each
+    interaction. Keying installation on content means an upload is processed
+    once, and re-processed only when the bytes actually change.
+    """
+    digest = hashlib.sha256()
+    for payload in payloads:
+        digest.update(hashlib.sha256(payload).digest())
+    return digest.hexdigest()
+
+
+def install_uploaded_project(
+    *,
+    name: str,
+    baseline: pd.DataFrame,
+    tickets: pd.DataFrame,
+    labelled: pd.DataFrame | None,
+    warnings: list[str],
+    signature: str,
+) -> None:
+    """Register an uploaded project exactly as the sample path does.
+
+    Before this existed, the upload branches assigned ``st.session_state``
+    directly and never reached :func:`_install`, so uploaded projects were
+    absent from the project store: no switching, no scope history, and a
+    default name on every exported report (audit finding §2.3).
+    """
+    _install(
+        name=name,
+        baseline=baseline,
+        tickets=tickets,
+        labelled=labelled,
+        source="upload",
+        warnings=warnings,
+        description=f"Uploaded {len(baseline)} requirements and {len(tickets)} tickets.",
+    )
+    st.session_state["upload_signature"] = signature
+
+
+def rename_active_project(new_name: str) -> None:
+    """Rename the active project and keep the session label in step."""
+    project_store = store()
+    active_id = project_store.active_id
+    if active_id is None:
+        raise ValueError("There is no active project to rename.")
+    project_store.rename(active_id, new_name)
+    st.session_state.project_name = project_store.get(active_id).name
 
 
 def load_sample_project() -> None:

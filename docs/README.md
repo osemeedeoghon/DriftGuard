@@ -10,7 +10,7 @@ describe planned rather than implemented behaviour say so in their title.
 |---|---|---|
 | **Audit** | [`PROJECT_AUDIT.md`](PROJECT_AUDIT.md) | ✅ Complete — baseline at `fb8c56b` |
 | **Roadmap** | [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md) | ✅ Complete — requirements, phases, traceability |
-| **Decisions** | [`adr/`](adr/README.md) | 🟡 Retrospective decisions recorded; forward ADRs scheduled |
+| **Decisions** | [`adr/`](adr/README.md) | 🟡 0001–0004 retrospective, 0005 accepted; further ADRs scheduled |
 | **Modelling** | `modelling/` | ⬜ Scheduled — roadmap phase P3 |
 | **Architecture** | `architecture/` | ⬜ Scheduled — phase P4 |
 | **Testing and QA** | `quality/` | ⬜ Scheduled — phase P5 |
