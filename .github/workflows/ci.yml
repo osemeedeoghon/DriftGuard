@@ -1,0 +1,87 @@
+# DriftGuard continuous integration.
+#
+# Audit finding: with no CI, the suite ran only when someone remembered. The
+# static guards added in P0.1 (HTML escaping) and P0.4 (dependency pinning)
+# only protect the project if something runs them automatically.
+#
+# See docs/adr/0006-continuous-integration.md.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A new push to the same branch cancels an in-flight run: the older result is
+# about to be superseded anyway.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      # Run every version even when one fails, so a single incompatibility
+      # does not hide the state of the others.
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Report the resolved environment
+        # Printed so a failing run shows what was actually installed, rather
+        # than leaving it to be inferred from the pins.
+        run: |
+          python --version
+          pip list
+
+      - name: Run the test suite
+        run: python -m pytest tests -v --durations=10
+
+  offline-first:
+    name: Offline-first check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Assert no network client in the execution path
+        # This duplicates a test assertion deliberately: it is cheap, it runs
+        # without installing anything, and it fails loudly on the one
+        # constraint that would quietly change what DriftGuard is.
+        # See docs/adr/0003-offline-first.md.
+        run: |
+          if grep -rnE "import (requests|urllib|http|openai|anthropic)|from (requests|urllib|openai|anthropic)" driftguard/ ui/ app.py; then
+            echo "::error::A network client was found in the execution path. DriftGuard is offline-first; see docs/adr/0003-offline-first.md"
+            exit 1
+          fi
+          echo "No network client found in driftguard/, ui/ or app.py."

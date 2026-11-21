@@ -1,5 +1,8 @@
 # DriftGuard
 
+[![CI](https://github.com/osemeedeoghon/DriftGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/osemeedeoghon/DriftGuard/actions/workflows/ci.yml)
+[![Python 3.11 | 3.12 | 3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](https://github.com/osemeedeoghon/DriftGuard/actions/workflows/ci.yml)
+
 Detects software project **scope creep** by comparing an agreed baseline of
 requirements against project tickets, classifies each change, measures a
 **Scope Drift Index**, and estimates what the drift costs in effort and
@@ -31,17 +34,20 @@ is 686 ms for 2,500 tickets against 300 requirements.
 
 **What is not production-ready.** A November 2026 audit
 ([`docs/PROJECT_AUDIT.md`](docs/PROJECT_AUDIT.md)) found no durable
-persistence, no audit logging, no CI pipeline, no packaging and no automated
-coverage of the UI layer. Those gaps are catalogued with evidence and
-scheduled in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+persistence, no audit logging, no packaging and no automated coverage of the
+UI layer. Those gaps are catalogued with evidence and scheduled in
+[`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
 
 **Fixed since the audit.** The confirmed HTML-injection path from uploaded
 ticket data is closed: untrusted text is escaped at every render boundary, and
 a static check over the whole codebase fails CI if a new unescaped site appears
 ([ADR-0005](docs/adr/0005-html-escaping-policy.md)). Uploaded projects now
 register properly, so project switching, scope history and report titles work
-on the upload path. One new finding is open and unfixed: CSV exports do not
-neutralise formula-leading cells (audit §7.6).
+on the upload path. The suite runs in CI on every push across Python 3.11,
+3.12 and 3.13, and runtime dependencies are pinned exactly, so a fresh clone
+reproduces the environment the tests were verified against
+([ADR-0006](docs/adr/0006-continuous-integration.md)). One new finding is open
+and unfixed: CSV exports do not neutralise formula-leading cells (audit §7.6).
 
 **What it has been validated on.** One synthetic project. DriftGuard is a
 demonstrated method with a worked example — **not** a product validated
@@ -69,7 +75,7 @@ code is version-specific).
 cd DriftGuard
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test tooling
 ```
 
 Check that `python3 --version` reports 3.11 or newer first. If your default

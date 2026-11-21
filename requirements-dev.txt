@@ -1,0 +1,19 @@
+# DriftGuard development and test dependencies — pinned exactly.
+#
+# Install with:  pip install -r requirements-dev.txt
+# This pulls in the runtime requirements too, so it is the only file a
+# contributor needs.
+#
+# Nothing here is imported by the application. Keeping test tooling out of
+# requirements.txt means a deployment installs neither pytest nor a PDF parser.
+
+-r requirements.txt
+
+# --- Test runner ---
+pytest==8.3.4
+
+# --- PDF inspection, for tests/test_pdf_report.py only ---
+# The application writes PDFs but never reads them back; this is what lets the
+# tests assert on the rendered content. The PDF tests use importorskip, so the
+# suite still runs without it — they skip rather than fail.
+pymupdf==2.1

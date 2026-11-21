@@ -34,6 +34,8 @@ These are non-negotiable and every work item below was checked against them:
 | ORM (SQLAlchemy etc.) | **Rejected** — the schema is 5 tables; an ORM is unnecessary weight |
 | Migration framework (Alembic) | **Rejected** — `PRAGMA user_version` plus ~40 lines suffices |
 | Test coverage tool (`pytest-cov`) | **Deferred to R2**, dev-only, not a runtime dependency |
+| Lockfile tool (`pip-tools`, `uv`, Poetry) | **Deferred** — exact `==` pins chosen first; see ADR-0006 |
+| GitHub Actions | **Approved** — CI infrastructure, not an application dependency |
 | Anything requiring a network call at runtime | **Rejected on principle** |
 
 ---
@@ -61,8 +63,8 @@ verifiable acceptance criterion.
 | ID | Requirement | Priority | Acceptance criterion | Audit ref |
 |---|---|---|---|---|
 | NFR-01 | No page interaction shall recompute analysis that has not changed | **Must** | Model Performance responds in <200 ms to a dropdown change (currently ≈1,430 ms) | §4.2 |
-| NFR-02 | The test suite shall run automatically on every push and pull request | **Must** | A GitHub Actions run is green on `main`, and the badge is in the README | §6 |
-| NFR-03 | Runtime dependencies shall be pinned to reproducible versions | **Must** | A fresh environment built from the pinned file passes all tests | §6 |
+| NFR-02 | The test suite shall run automatically on every push and pull request | **Must** ✅ | A GitHub Actions run is green on `main`, and the badge is in the README | §6 |
+| NFR-03 | Runtime dependencies shall be pinned to reproducible versions | **Must** ✅ | A fresh environment built from the pinned file passes all tests | §6 |
 | NFR-04 | The UI layer shall have automated regression coverage | **Should** | Every page module has at least a smoke test proving it renders without exception for a loaded project | §7.3 |
 | NFR-05 | No function shall exceed 120 lines | **Should** | `build_pdf_report` (481) and the six page renders are decomposed; a test asserts the limit | §1.4 |
 | NFR-06 | The application shall be installable as a package | **Should** | `pip install -e .` works and `driftguard` imports without the CWD on `sys.path` | §6 |
@@ -98,16 +100,22 @@ built on top of these.
 |---|---|---|---|---|
 | P0.1 | Escape all user data at HTML boundaries via a shared helper | `ui/safe_html.py` (new), `ui/components.py`, `overview.py`, `review.py`, `sidebar.py`, `app.py` | FR-02; regression test with the proven payload | ✅ **Done** |
 | P0.2 | Route uploads through `state._install()` so they register as projects | `ui/sidebar.py`, `ui/state.py`, `driftguard/projects.py` | FR-01; test asserts an uploaded project appears in `ProjectStore` | ✅ **Done** |
-| P0.3 | GitHub Actions: pytest on push and PR, Python 3.11/3.12/3.13 matrix | `.github/workflows/ci.yml` | NFR-02; green run on `main` | ⬜ Next |
-| P0.4 | Pin runtime dependencies | `requirements.txt` | NFR-03 | ⬜ |
-| P0.5 | ADR-0005 escaping policy, ADR-0006 CI | `docs/adr/` | DR-03 | 🟡 0005 done |
+| P0.3 | GitHub Actions: pytest on push and PR, Python 3.11/3.12/3.13 matrix | `.github/workflows/ci.yml` | NFR-02; green run on `main` | ✅ **Done** |
+| P0.4 | Pin runtime dependencies | `requirements.txt`, `requirements-dev.txt` | NFR-03 | ✅ **Done** |
+| P0.5 | ADR-0005 escaping policy, ADR-0006 CI | `docs/adr/` | DR-03 | ✅ **Done** |
 | P0.6 | **New.** Neutralise formula-leading cells in CSV exports (finding S-4) | `driftguard/reporting.py`, `driftguard/data.py` | A cell beginning `=`, `+`, `-` or `@` is exported inert; regression test | ⬜ |
 
 **Exit:** 300 tests + new regressions green in CI. **Estimate [A]:** 1 day.
 
-**Progress (20 Nov 2026).** P0.1 and P0.2 implemented and verified. Suite
-went 300 → **345 passing**; the original 300 pass unmodified. P0.6 was added
-after S-4 was discovered during P0.1 — see audit §7.6.
+**Progress (20 Nov 2026).** P0.1–P0.5 implemented and verified. Suite went
+300 → **365 passing**; the original 300 pass unmodified throughout. P0.6 was
+added after finding S-4 was discovered during P0.1 — see audit §7.6. P0 closes
+once P0.6 lands.
+
+Dependency pinning is exact on *direct* dependencies only; transitive
+dependencies remain unconstrained, so builds are substantially rather than
+perfectly reproducible. A lockfile is the eventual answer and is recorded in
+[ADR-0006](adr/0006-continuous-integration.md) as a future supersession.
 
 ---
 
@@ -307,8 +315,8 @@ The audit set the precedent by refusing to; P7 must hold that line.
 | §7.1 injection (proven) | FR-02 | P0.1 ✅ |
 | §2.3 uploads not registered | FR-01 | P0.2 ✅ |
 | §7.6 CSV formula injection | FR-08 | P0.6 |
-| §6 no CI | NFR-02 | P0.3 |
-| §6 unpinned dependencies | NFR-03 | P0.4 |
+| §6 no CI | NFR-02 | P0.3 ✅ |
+| §6 unpinned dependencies | NFR-03 | P0.4 ✅ |
 | §6 no persistence | FR-03 | P1.2–P1.6 |
 | §7.2 no audit trail | FR-04, FR-05 | P1.5, P2.6 |
 | §1.4 481-line function | NFR-05 | P2.1 |

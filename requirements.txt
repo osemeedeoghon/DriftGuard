@@ -1,20 +1,33 @@
-# DriftGuard runtime dependencies.
+# DriftGuard runtime dependencies — pinned exactly (roadmap NFR-03).
+#
 # Everything here is free and runs locally. No LLM API client appears in this
-# list, and none should ever be added to the application's execution path.
-streamlit>=1.30
-pandas>=2.0
-numpy>=1.24
-scikit-learn>=1.3
-plotly>=5.18
+# list, and none should ever be added to the application's execution path
+# (see docs/adr/0003-offline-first.md).
+#
+# Versions are the ones the suite was verified against, not the latest
+# available. Ranges were replaced with exact pins because `>=` meant a fresh
+# environment could install a different dependency set from the one that was
+# tested, so "the tests pass" described nobody's machine in particular.
+#
+# Development and test tooling lives in requirements-dev.txt.
+#
+# To upgrade: change one pin, run the suite, and commit the pin with the
+# result. tests/test_requirements.py enforces that every line stays pinned.
 
-# Testing
-pytest>=7.4
-# Optional: PDF text extraction for the PDF report tests. The application
-# never imports it; those tests skip cleanly when it is absent.
-pymupdf>=1.24
+# --- Dashboard ---
+streamlit==1.45.1
 
-# PDF report generation (Phase 9). Pure Python, runs offline, no service calls.
-# Matplotlib renders the chart images; it is already present in the scientific
-# stack, which avoids adding Kaleido + headless Chromium for Plotly export.
-reportlab>=4.0
-matplotlib>=3.7
+# --- Analysis ---
+pandas==2.2.3
+numpy==2.1.3
+scikit-learn==1.6.1
+
+# --- Charts (on screen) ---
+plotly==5.24.1
+
+# --- PDF reporting ---
+# ReportLab lays the document out; Matplotlib renders the chart images. Using
+# Matplotlib rather than exporting the Plotly figures avoids pulling in Kaleido
+# and a headless Chromium for the same result.
+reportlab==5.1.0
+matplotlib==3.10.0
